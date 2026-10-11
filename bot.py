@@ -20,6 +20,8 @@ intents.message_content = True
 intents.members = True
 intents.guilds = True
 intents.messages = True
+client = discord.Client(intents=intents)
+
 
 bot = commands.Bot(
     command_prefix=PREFIX,
@@ -27,6 +29,9 @@ bot = commands.Bot(
     help_command=None,
     activity=discord.Game(name="^help | Mallow 🍡"),
 )
+
+
+
 
 def load_data():
     if not DATA_FILE.exists():
@@ -246,7 +251,7 @@ async def announce(ctx, *, message):
         await ctx.message.delete()
     except discord.HTTPException:
         pass
-    await ctx.send(f"📣🐾 {message}")
+    await ctx.send(f" {message}")
 
 @bot.event
 async def on_command_error(ctx, error):
@@ -260,5 +265,14 @@ async def on_command_error(ctx, error):
         await ctx.send("❌🐾 Eep! My fluff got tangled while running that command. Please try again!")
         return
     print(f"Unhandled command error: {error}")
+    
+    
+@client.event
+async def on_ready():
+    await client.change_presence(status=discord.Status.idle)
+    print(f'{client.user} has connected to Discord!')
+    
+
 
 bot.run(TOKEN)
+
