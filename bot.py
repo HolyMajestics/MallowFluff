@@ -12,8 +12,15 @@ DATA_FILE = Path("data.json")
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
+MAINTAINER_ROLE_ID = os.getenv("MAINTAINER_ROLE_ID")
 if not TOKEN:
     raise RuntimeError("DISCORD_TOKEN is missing. Create a .env file and add your bot token.")
+
+if not MAINTAINER_ROLE_ID:
+    raise RuntimeError("MAINTAINER_ROLE_ID is missing from .env")
+MAINTAINER_ROLE_ID = int(MAINTAINER_ROLE_ID)
+
+# hello...
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -252,6 +259,24 @@ async def announce(ctx, *, message):
     except discord.HTTPException:
         pass
     await ctx.send(f" {message}")
+
+@bot.check
+async def block_commands_during_maintenance(ctx):
+    if ctx.command and ctx.command.name in ("maintain", "status"):
+        return True
+    if maintainancemode:
+        await ctx.send("Eep! Mallow is being in mainteinance mode!")
+        return False
+    return True
+@bot.command()
+async def maintain(ctx):
+    global maintainancemode
+    if ctx.guild is None or not any(
+        role.id == MAINTAINER_ROLE_ID for role in ctx.author.roles
+    ):
+        await ctx.send("You downt have pewmissiown fo zis!")
+        return
+
 
 @bot.event
 async def on_command_error(ctx, error):
