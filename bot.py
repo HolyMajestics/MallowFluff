@@ -94,7 +94,7 @@ async def require_mod(ctx):
         await ctx.send("❌🐾 Eep! Mallow can only do that inside a server, nya!")
         return False
     if not isinstance(ctx.author, discord.Member) or not is_moderator(ctx.author):
-        await ctx.send("❌🐾 Eep! You need moderator permissions for that, fluff-friend!")
+        await ctx.send("❌🐾 Eep! You need moderator pewmissions for that, fluff-friend!")
         return False
     return True
 
