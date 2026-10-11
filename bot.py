@@ -106,12 +106,12 @@ async def help(ctx):
 
 @bot.command()
 async def ping(ctx):
-    await ctx.send(f"🏓🐾 Pawng! Mallow is wide awake and ready to help! `{round(bot.latency * 1000)}ms`")
+    await ctx.send(f"🏓🐾 Pawng! I`m wide awake and ready to help! `{round(bot.latency * 1000)}ms`")
 
 @bot.command()
 async def userinfo(ctx, member: discord.Member = None):
     if ctx.guild is None:
-        return await ctx.send("❌🐾 Eep! Mallow can only do that inside a server, nya!")
+        return await ctx.send("❌🐾 Eep! Mallow can only do that inside a server, woof!")
     member = member or ctx.author
     embed = discord.Embed(title=f"👤 {member}", color=discord.Color.blurple())
     embed.add_field(name="User ID", value=str(member.id), inline=False)
