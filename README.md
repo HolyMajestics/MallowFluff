@@ -1,6 +1,6 @@
 # Mallow — Python Discord Bot
 
-Prefix-only Discord moderation bot using `^`, with a cute furry mascot personality. 🐾🍡
+Prefix-only Discord moderation bot using `^`.
 
 ## Setup
 1. Install Python 3.10+.
