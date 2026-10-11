@@ -29,7 +29,6 @@ intents.guilds = True
 intents.messages = True
 client = discord.Client(intents=intents)
 
-
 bot = commands.Bot(
     command_prefix=PREFIX,
     intents=intents,
@@ -37,7 +36,7 @@ bot = commands.Bot(
     activity=discord.Game(name="^help | Mallow 🍡"),
 )
 
-
+maintainancemode = False
 
 
 def load_data():
@@ -48,11 +47,14 @@ def load_data():
     except (json.JSONDecodeError, OSError):
         return {"guilds": {}}
 
+
 data = load_data()
 data.setdefault("guilds", {})
 
+
 def save_data():
     DATA_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
 
 def guild_data(guild):
     gd = data["guilds"].setdefault(str(guild.id), {"mod_role_id": None, "warnings": {}})
@@ -60,18 +62,22 @@ def guild_data(guild):
     gd.setdefault("warnings", {})
     return gd
 
+
 def get_mod_role(guild):
     role_id = guild_data(guild)["mod_role_id"]
     return guild.get_role(int(role_id)) if role_id else None
 
+
 def is_owner(ctx):
     return ctx.guild is not None and ctx.author.id == ctx.guild.owner_id
+
 
 def is_moderator(member):
     if member.id == member.guild.owner_id or member.guild_permissions.administrator:
         return True
     role = get_mod_role(member.guild)
     return role is not None and role in member.roles
+
 
 async def require_owner(ctx):
     if ctx.guild is None:
@@ -82,6 +88,7 @@ async def require_owner(ctx):
         return False
     return True
 
+
 async def require_mod(ctx):
     if ctx.guild is None:
         await ctx.send("❌🐾 Eep! Mallow can only do that inside a server, nya!")
@@ -91,29 +98,41 @@ async def require_mod(ctx):
         return False
     return True
 
+
 def target_is_higher(actor, target):
     return target.id == actor.guild.owner_id or target.top_role >= actor.top_role
+
 
 def bot_can_act(target):
     me = target.guild.me
     return me is not None and target.top_role < me.top_role
+
 
 @bot.event
 async def on_ready():
     print(f"Logged in as {bot.user} (ID: {bot.user.id})")
     print("Mallow is online and feeling fluffy! 🐾🍡")
 
+
 @bot.command()
 async def help(ctx):
-    embed = discord.Embed(title="🍡🐾 Mallow Command Book", description="Hewwo! Here are my fluffy little commands! Prefix: `^`", color=discord.Color.blurple())
-    embed.add_field(name="🐾 General", value="`^help`\n`^ping`\n`^userinfo [@user]`\n`^serverinfo`\n`^warnings @user`\n`^modrole`", inline=False)
-    embed.add_field(name="🛡️🐾 Moderation", value="`^ban @user [reason]`\n`^kick @user [reason]`\n`^timeout @user <minutes> [reason]`\n`^untimeout @user`\n`^warn @user [reason]`\n`^clearwarnings @user`\n`^clear <amount>`", inline=False)
+    embed = discord.Embed(title="🍡🐾 Mallow Command Book",
+                          description="Hewwo! Here are my fluffy little commands! Prefix: `^`",
+                          color=discord.Color.blurple())
+    embed.add_field(name="🐾 General",
+                    value="`^help`\n`^ping`\n`^userinfo [@user]`\n`^serverinfo`\n`^warnings @user`\n`^modrole`",
+                    inline=False)
+    embed.add_field(name="🛡️🐾 Moderation",
+                    value="`^ban @user [reason]`\n`^kick @user [reason]`\n`^timeout @user <minutes> [reason]`\n`^untimeout @user`\n`^warn @user [reason]`\n`^clearwarnings @user`\n`^clear <amount>`",
+                    inline=False)
     embed.add_field(name="👑🐾 Owner only", value="`^assignmodrole @role`\n`^announce <message>`", inline=False)
     await ctx.send(embed=embed)
 
+
 @bot.command()
 async def ping(ctx):
-    await ctx.send(f"🏓🐾 Pawng! I`m wide awake and ready to help! `{round(bot.latency * 1000)}ms`")
+    await ctx.send(f"🏓🐾 Pawng! Im wide awake and ready to help! `{round(bot.latency * 1000)}ms`")
+
 
 @bot.command()
 async def userinfo(ctx, member: discord.Member = None):
@@ -128,6 +147,7 @@ async def userinfo(ctx, member: discord.Member = None):
     embed.set_thumbnail(url=member.display_avatar.url)
     await ctx.send(embed=embed)
 
+
 @bot.command()
 async def serverinfo(ctx):
     if ctx.guild is None:
@@ -138,6 +158,7 @@ async def serverinfo(ctx):
     embed.add_field(name="Members", value=str(g.member_count), inline=True)
     embed.add_field(name="Channels", value=str(len(g.channels)), inline=True)
     await ctx.send(embed=embed)
+
 
 @bot.command()
 async def ban(ctx, member: discord.Member, *, reason="No reason provided"):
@@ -152,6 +173,7 @@ async def ban(ctx, member: discord.Member, *, reason="No reason provided"):
     except discord.Forbidden:
         await ctx.send("❌🐾 Eep! Discord denied the ban. Check Mallow's permissions and role position.")
 
+
 @bot.command()
 async def kick(ctx, member: discord.Member, *, reason="No reason provided"):
     if not await require_mod(ctx): return
@@ -164,6 +186,7 @@ async def kick(ctx, member: discord.Member, *, reason="No reason provided"):
         await ctx.send(f"👢🐾 Whoopsie! **{member}**. Reason: {reason}")
     except discord.Forbidden:
         await ctx.send("❌🐾 Eep! Discord denied the kick. Check Mallow's permissions and role position.")
+
 
 @bot.command()
 async def timeout(ctx, member: discord.Member, minutes: int, *, reason="No reason provided"):
@@ -180,6 +203,7 @@ async def timeout(ctx, member: discord.Member, minutes: int, *, reason="No reaso
     except discord.Forbidden:
         await ctx.send("❌🐾 Eep! Discord denied the timeout. Check Mallow's permissions.")
 
+
 @bot.command()
 async def untimeout(ctx, member: discord.Member):
     if not await require_mod(ctx): return
@@ -190,6 +214,7 @@ async def untimeout(ctx, member: discord.Member):
         await ctx.send(f"✨🐾 Yay! **{member}**.")
     except discord.Forbidden:
         await ctx.send("❌🐾 Eep! Discord wouldn't let me remove that timeout.")
+
 
 @bot.command()
 async def warn(ctx, member: discord.Member, *, reason="No reason provided"):
@@ -202,6 +227,7 @@ async def warn(ctx, member: discord.Member, *, reason="No reason provided"):
     save_data()
     await ctx.send(f"⚠️🐾 Uh-oh! **{member}**. They now have **{len(warnings)}** warning(s). Reason: {reason}")
 
+
 @bot.command()
 async def warnings(ctx, member: discord.Member):
     if ctx.guild is None:
@@ -210,7 +236,9 @@ async def warnings(ctx, member: discord.Member):
     if not entries:
         return await ctx.send(f"✅ **{member}** has no warnings.")
     lines = [f"**{i}.** {x['reason']} — <@{x['moderator_id']}>" for i, x in enumerate(entries, 1)]
-    await ctx.send(embed=discord.Embed(title=f"⚠️ Warnings for {member}", description="\n".join(lines), color=discord.Color.orange()))
+    await ctx.send(embed=discord.Embed(title=f"⚠️ Warnings for {member}", description="\n".join(lines),
+                                       color=discord.Color.orange()))
+
 
 @bot.command()
 async def clearwarnings(ctx, member: discord.Member):
@@ -219,6 +247,7 @@ async def clearwarnings(ctx, member: discord.Member):
     save_data()
     await ctx.send(f"🧹🐾 All warnings for **{member}**.")
 
+
 @bot.command()
 async def clear(ctx, amount: int):
     if not await require_mod(ctx): return
@@ -226,9 +255,10 @@ async def clear(ctx, amount: int):
         return await ctx.send("❌🐾 Please choose an amount between 1 and 100, fluff-friend!")
     try:
         deleted = await ctx.channel.purge(limit=amount + 1)
-        await ctx.send(f"🧹🐾 Sweep-sweep! Mallow deleted **{max(0, len(deleted)-1)}** message(s).", delete_after=3)
+        await ctx.send(f"🧹🐾 Sweep-sweep! Mallow deleted **{max(0, len(deleted) - 1)}** message(s).", delete_after=3)
     except discord.Forbidden:
         await ctx.send("❌🐾 Eep! Mallow needs the **Manage Messages** permission to do that.")
+
 
 @bot.command()
 async def assignmodrole(ctx, role: discord.Role):
@@ -242,11 +272,14 @@ async def assignmodrole(ctx, role: discord.Role):
     save_data()
     await ctx.send(f"🛡️🐾 Yay! **{role.name}**.")
 
+
 @bot.command()
 async def modrole(ctx):
     if ctx.guild is None: return
     role = get_mod_role(ctx.guild)
-    await ctx.send(f"🛡️ Current moderator role: **{role.name}**" if role else "ℹ️ No moderator role has been assigned yet.")
+    await ctx.send(
+        f"🛡️ Current moderator role: **{role.name}**" if role else "ℹ️ No moderator role has been assigned yet.")
+
 
 @bot.command()
 async def announce(ctx, *, message):
@@ -260,6 +293,7 @@ async def announce(ctx, *, message):
         pass
     await ctx.send(f" {message}")
 
+
 @bot.check
 async def block_commands_during_maintenance(ctx):
     if ctx.command and ctx.command.name in ("maintain", "status"):
@@ -268,14 +302,22 @@ async def block_commands_during_maintenance(ctx):
         await ctx.send("Eep! Mallow is being in mainteinance mode!")
         return False
     return True
+
+
 @bot.command()
 async def maintain(ctx):
     global maintainancemode
+
     if ctx.guild is None or not any(
         role.id == MAINTAINER_ROLE_ID for role in ctx.author.roles
     ):
-        await ctx.send("You downt have pewmissiown fo zis!")
+        await ctx.send("You don't have permission to use this command.")
         return
+
+    maintainancemode = not maintainancemode
+    state = "ON" if maintainancemode else "OFF"
+    await ctx.send(f"Maintenance mode is now **{state}**.")
+
 
 
 @bot.event
@@ -290,14 +332,12 @@ async def on_command_error(ctx, error):
         await ctx.send("❌🐾 Eep! My fluff got tangled while running that command. Please try again!")
         return
     print(f"Unhandled command error: {error}")
-    
-    
+
+
 @client.event
 async def on_ready():
     await client.change_presence(status=discord.Status.idle)
     print(f'{client.user} has connected to Discord!')
-    
 
 
 bot.run(TOKEN)
-
